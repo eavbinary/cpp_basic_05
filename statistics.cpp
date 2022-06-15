@@ -1,5 +1,6 @@
 #include <iostream>
 #include <limits>
+#include <vector>
 
 class IStatistics {
 public:
@@ -12,7 +13,7 @@ public:
 
 class Min : public IStatistics {
 public:
-	Min() : m_min{std::numeric_limits<double>::min()} {
+	Min() : m_min{std::numeric_limits<double>::max()} {
 	}
 
 	void update(double next) override {
@@ -33,12 +34,103 @@ private:
 	double m_min;
 };
 
+class Max : public IStatistics {
+public:
+	Max()
+	 : m_max{std::numeric_limits<double>::min()} {
+	}
+
+	void update(double next) override {
+		if (next > m_max) {
+			m_max = next;
+		}
+	}
+
+	double eval() const override {
+		return m_max;
+	}
+
+	const char * name() const override {
+		return "max";
+	}
+
+private:
+	double m_max;
+};
+
+class Mean : public IStatistics {
+public:
+	Mean()
+	{
+		sum = 0;
+		count = 0;
+	}
+
+	void update(double next) override {
+		count++;
+		sum += next;
+	}
+
+	double eval() const override {
+		return sum / count;
+	}
+
+	const char * name() const override {
+		return "mean";
+	}
+
+private:
+	int count;
+	double sum;
+};
+
+class Std : public IStatistics {
+public:
+	Std(){
+		mean = new Mean();
+	}
+
+	void update(double next) override {
+		numeric_arr.push_back(next);
+
+		mean->update(next);
+
+		double num = 0;
+		double temp = 0;
+		for (size_t i=0; i < numeric_arr.size(); i++){
+			temp = numeric_arr[i] -  mean->eval();
+			num += temp * temp;
+		}
+		result = sqrt(num / numeric_arr.size());
+	}
+
+	double eval() const override {
+		return result;
+	}
+
+	const char * name() const override {
+		return "std";
+	}
+
+private:
+	double result = 0;
+	Mean *mean;
+	std::vector<double> numeric_arr = {};
+
+	~Std(){
+		delete mean;
+	}
+};
+
 int main() {
 
-	const size_t statistics_count = 1;
+	const size_t statistics_count = 4;
 	IStatistics *statistics[statistics_count];
 
 	statistics[0] = new Min{};
+	statistics[1] = new Max{};
+	statistics[2] = new Mean{};
+	statistics[3] = new Std{};
 
 	double val = 0;
 	while (std::cin >> val) {

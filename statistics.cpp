@@ -37,7 +37,7 @@ private:
 class Max : public IStatistics {
 public:
 	Max()
-	 : m_max{std::numeric_limits<double>::min()} {
+	 : m_max{std::numeric_limits<double>::lowest()} {
 	}
 
 	void update(double next) override {
@@ -92,20 +92,18 @@ public:
 
 	void update(double next) override {
 		numeric_arr.push_back(next);
-
 		mean->update(next);
+	}
 
+	double eval() const override {
 		double num = 0;
 		double temp = 0;
 		for (size_t i=0; i < numeric_arr.size(); i++){
 			temp = numeric_arr[i] -  mean->eval();
 			num += temp * temp;
 		}
-		result = sqrt(num / numeric_arr.size());
-	}
-
-	double eval() const override {
-		return result;
+	
+		return sqrt(num / numeric_arr.size());
 	}
 
 	const char * name() const override {
@@ -113,7 +111,6 @@ public:
 	}
 
 private:
-	double result = 0;
 	Mean *mean;
 	std::vector<double> numeric_arr = {};
 
